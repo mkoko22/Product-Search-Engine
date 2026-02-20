@@ -1,0 +1,5 @@
+# Feb 20
+19:30–21:30:
+Did: read the assignment carefully and worked on understanding the requirements. Reviewed TF-IDF and feature weighting examples to see how to identify which words are most meaningful in a search context. Explored different interface options (CLI vs website) and considered how much impact the interface has versus the search logic.
+Confused about: how to clearly distinguish common versus informative words when ranking relevance, whether a CLI might be viewed as less impressive than a website, and how detailed the work log should be to reflect genuine progress.
+Changed after learning: decided to maintain the work log in real time rather than writing it all at the end. Also concluded that a simple CLI can still be very effective if the search and ranking logic is solid, so I’ll prioritize correctness and clarity over interface design.
