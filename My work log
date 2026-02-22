@@ -23,10 +23,15 @@ Confused about: at first, my top words list was completely flooded with generic 
 Changed after learning: I realized I needed to filter out common English words (like "the" or "and"), so I used ENGLISH_STOP_WORDS from sklearn to clean up my frequency counter. For synonyms, I originally thought about using a big dictionary library to find matching words. But I realized that would be too slow and complicated for a simple CLI app. Instead, I decided to just "hardcode" a small dictionary of synonyms myself using only the most common words I found in my product dataset.
 
 19:00-21:00
-Did: Implemented the core search and ranking engine. I brought in TfidfVectorizer from sklearn to convert all product texts into a matrix, which automatically weights unique/informative words higher than generic ones. I also wrote an expand_synonyms function to catch related terms, and built the final search function that ties the whole pipeline together.
+Did: implemented the core search and ranking engine. I brought in TfidfVectorizer from sklearn to convert all product texts into a matrix, which automatically weights unique/informative words higher than generic ones. I also wrote an expand_synonyms function to catch related terms, and built the final search function that ties the whole pipeline together.
 
-Confused about: Initially, I wasn't sure how to efficiently score and rank 10,000 products against a user's query without writing a massive, slow for loop to count matching words. I was also re-calculating the vocabulary for my typo-fixer manually, which felt redundant and slow.
+Confused about: initially, I wasn't sure how to efficiently score and rank 10,000 products against a user's query without writing a massive, slow for loop to count matching words. I was also re-calculating the vocabulary for my typo-fixer manually, which felt redundant and slow.
 
 Changed after learning:  I learned about cosine_similarity, which compares the "angle" of the query vector against the entire product matrix instantly, providing a much more accurate relevance score than basic word counting. I also realized TfidfVectorizer automatically extracts all unique words during its fit_transform step. I deleted my manual vocabulary loop and replaced it with vectorizer.get_feature_names_out(), which made the script significantly faster and cleaner.
 
+21:00-23:00
+Did: added post-search filtering for Price and Brand and polished the CLI. I updated the search function to accept optional filter arguments and process them efficiently.
 
+Confused about: initially, I wasn't sure when to apply the filters. If I filtered the data list before running the search, the index numbers of the products would no longer match the index numbers in my tfidf_matrix, which would cause the program to return the wrong products or crash.
+
+Changed after learning: I realized the best way to do this is to calculate the cosine similarity scores for everything, sort the array from highest to lowest score, and then apply the filters as I loop through the sorted list. I set it to break the loop as soon as it successfully finds 10 products that match the filter criteria.
