@@ -1,4 +1,4 @@
-# Feb 20
+## Feb 20
 19:30–21:30:
 Did: read the assignment carefully and worked on understanding the requirements. Reviewed TF-IDF and feature weighting examples to see how to identify which words are most meaningful in a search context. Explored different interface options (CLI vs website) and considered how much impact the interface has versus the search logic.
 
@@ -6,7 +6,7 @@ Confused about: how to clearly distinguish common versus informative words when 
 
 Changed after learning: decided to maintain the work log in real time rather than writing it all at the end. Also concluded that a simple CLI can still be very effective if the search and ranking logic is solid, so I’ll prioritize correctness and clarity over interface design.
 
-# Feb 21
+## Feb 21
 00:30-02:30
 Did: started implementing data preprocessing. Wrote functions to load JSON, combine product fields into a single text string, lowercase everything, and remove punctuation/extra spaces. Tested preprocessing on sample products to confirm it worked.
 
@@ -14,7 +14,7 @@ Confused about: how to handle typos in user queries efficiently and whether to b
 
 Changed after learning: discovered difflib.get_close_matches and rapidfuzz.process.extractOne could help with fuzzy matching. Tested difflib for single-word typos and decided it works more reliably for short words than rapidfuzz. Decided to integrate it into query preprocessing.
 
-# Feb 22
+## Feb 22
 16:00 - 18:00
 Did: worked on ways to improve search recall by handling vocabulary mismatches. Wrote a script to count and extract the most frequent words across all products (save_top_words) to understand the dataset better. Based on those common terms, I manually created a SYNONYMS dictionary to map variations.
 
