@@ -7,6 +7,7 @@ from difflib import get_close_matches
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+
 # synonym dictionary for query expansion
 SYNONYMS = {
     "use": ["utilize", "apply", "employ"],
@@ -88,7 +89,6 @@ def save_top_words(processed_data, file_name="top_words.txt", top_n=30):
     
     counter = Counter(words)
     top_words = counter.most_common(top_n)
-    
     file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
     
     with open(file_path, "w") as f:
@@ -113,54 +113,90 @@ def expand_synonyms(query, synonyms_dict):
             expanded.extend(synonyms_dict[w])
     return " ".join(expanded)
 
-# search function
-def search(query, vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary, top_k=10):
+# search function with filtering
+def search(query, vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary, max_price=None, target_brand=None, top_k=10):
     query = query.lower()
     query = re.sub(r"[^a-z0-9\s]", " ", query)
     query = re.sub(r"\s+", " ", query).strip()
-
     query = fix_typos(query, vocabulary)
     query = expand_synonyms(query, synonyms_dict)
-
     query_vec = vectorizer.transform([query])
-    scores = cosine_similarity(query_vec, tfidf_matrix).flatten()
 
-    top_indices = np.argsort(scores)[::-1][:top_k]
+    scores = cosine_similarity(query_vec, tfidf_matrix).flatten()
+    sorted_indices = np.argsort(scores)[::-1]
 
     results = []
-    for idx in top_indices:
-        results.append((data[idx], float(scores[idx])))
+    for idx in sorted_indices:
+        score = float(scores[idx])
+        
+        if score == 0:
+            break
+
+        product = data[idx]
+
+        if max_price is not None: # price filtering
+            try:
+                price = float(product.get('price', 0))
+                if price > max_price:
+                    continue
+            except ValueError:
+                continue
+
+        if target_brand is not None: # brand filtering
+            brand = product.get('brand', '').lower()
+            if brand != target_brand.lower():
+                continue
+
+        results.append((product, score))
+        if len(results) == top_k:
+            break
+            
     return results
 
 # interactive CLI loop
 def run_cli(vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary):
     print("\n" + "="*60)
-    print("Product Search Engine Ready! Type 'exit' to quit.")
+    print("Product Search Engine Ready")
     print("="*60 + "\n")
     
     while True:
-        query = input("Search: ").strip()
+        print("-"*60 + "\n")
+        query = input("Search keywords (or 'exit' to quit): ").strip()
+        
         if not query:
             continue
+            
         if query.lower() in ["exit", "quit"]:
-            print("Goodbye!")
+            print("\nGoodbye!\n")
             break
 
-        results = search(query, vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary)
+        price_input = input("Max price (optional, press Enter to skip): ").strip()
+        max_price = None
+        if price_input:
+            try:
+                max_price = float(price_input)
+            except ValueError:
+                print("  [!] Invalid price format. Ignoring price filter.")
 
-        valid_results = [(p, s) for p, s in results if s > 0]
+        brand_input = input("Brand (optional, press Enter to skip): ").strip()
+        target_brand = brand_input if brand_input else None
 
-        if not valid_results:
-            print("\nNo matching products found. Try different keywords!\n")
+        print("\nSearching...")
+        results = search(query, vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary, max_price, target_brand)
+
+        if not results:
+            print("\nNo matching products found for your criteria. Try looser filters.\n")
             continue
 
-        print(f"\nTop {len(valid_results)} results:")
-        for i, (product, score) in enumerate(valid_results, 1):
+        print(f"\nTop {len(results)} results:")
+        for i, (product, score) in enumerate(results, 1):
             name = product.get('name', 'Unknown')
             price = product.get('price', 'N/A')
             brand = product.get('brand', 'N/A')
-            print(f"{i}. {name} | Brand: {brand} | Price: {price} (Score: {score:.4f})")
+            print(f"  {i}. {name}")
+            print(f"     Brand: {brand} | Price: ${price} | (Score: {score:.4f})")
         print("\n")
+
 
 # main execution
 if __name__ == "__main__":
@@ -172,7 +208,6 @@ if __name__ == "__main__":
 
     data = load_data("products.json") 
     processed_data = preprocess_data(data)
-
     vectorizer, tfidf_matrix = build_tfidf(processed_data)
     vocabulary = vectorizer.get_feature_names_out()
     run_cli(vectorizer, tfidf_matrix, data, SYNONYMS, vocabulary)
