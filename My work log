@@ -13,3 +13,14 @@ Did: started implementing data preprocessing. Wrote functions to load JSON, comb
 Confused about: how to handle typos in user queries efficiently and whether to build it from scratch or use existing libraries.
 
 Changed after learning: discovered difflib.get_close_matches and rapidfuzz.process.extractOne could help with fuzzy matching. Tested difflib for single-word typos and decided it works more reliably for short words than rapidfuzz. Decided to integrate it into query preprocessing.
+
+# Feb 22
+16:00 - 18:00
+Did: worked on ways to improve search recall by handling vocabulary mismatches. Wrote a script to count and extract the most frequent words across all products (save_top_words) to understand the dataset better. Based on those common terms, I manually created a SYNONYMS dictionary to map variations.
+
+Confused about: at first, my top words list was completely flooded with generic words like "the", "and", or "with", which wasn't helpful for finding actual product attributes. I was also unsure whether to use a massive external library like WordNet for synonyms or just hardcode them.
+
+Changed after learning: I realized I needed to filter out common English words (like "the" or "and"), so I used ENGLISH_STOP_WORDS from sklearn to clean up my frequency counter. For synonyms, I originally thought about using a big dictionary library to find matching words. But I realized that would be too slow and complicated for a simple CLI app. Instead, I decided to just "hardcode" a small dictionary of synonyms myself using only the most common words I found in my product dataset.
+
+
+
