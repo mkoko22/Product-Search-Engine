@@ -3,7 +3,41 @@ import re
 import os
 from collections import Counter
 from difflib import get_close_matches
-from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
+
+
+SYNONYMS = {
+    "use": ["utilize", "apply", "employ"],
+    "quality": ["standard", "grade", "caliber"],
+    "classic": ["traditional", "timeless", "iconic"],
+    "travel": ["journey", "trip", "tour"],
+    "materials": ["fabrics", "components", "substances"],
+    "design": ["style", "pattern", "layout"],
+    "max": ["maximum", "ultimate", "highest"],
+    "pro": ["professional", "advanced", "expert"],
+    "elite": ["premium", "exclusive", "top-tier"],
+    "lite": ["lightweight", "basic", "slim"],
+    "sport": ["athletic", "fitness", "training"],
+    "plus": ["additional", "extra", "extended"],
+    "studio": ["workshop", "lab", "creative-space"],
+    "designed": ["crafted", "built", "constructed"],
+    "worldwide": ["global", "international", "universal"],
+    "essentials": ["basics", "necessities", "fundamentals"],
+    "performs": ["operates", "functions", "works"],
+    "ensure": ["guarantee", "secure", "confirm"],
+    "excellent": ["outstanding", "superb", "exceptional"],
+    "performance": ["efficiency", "output", "capabilities"],
+    "functionality": ["features", "capabilities", "utility"],
+    "home": ["house", "domestic", "residential"],
+    "ideal": ["perfect", "optimal", "suitable"],
+    "modern": ["contemporary", "current", "updated"],
+    "premium": ["luxury", "high-end", "top-quality"],
+    "collection": ["set", "series", "assortment"],
+    "setup": ["configuration", "installation", "arrangement"],
+    "users": ["customers", "clients", "consumers"],
+    "craftsmanship": ["artistry", "skill", "expertise"],
+    "friendly": ["easy", "accessible", "user-friendly"],
+}
 
 # load product data
 def load_data(file_path):
@@ -61,51 +95,40 @@ def save_top_words(processed_data, file_name="top_words.txt", top_n=30):
     
     print(f"Top {top_n} words saved to {file_path}")
 
+# build TF-IDF
+def build_tfidf(processed_data):
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(processed_data)
+    return vectorizer, tfidf_matrix
+
+# expand synonyms
+def expand_synonyms(query, synonyms_dict):
+    words = query.split()
+    expanded = []
+    for w in words:
+        expanded.append(w)
+        if w in synonyms_dict:
+            expanded.extend(synonyms_dict[w])
+    return " ".join(expanded)
+
 # run simple checks only when executing directly
 if __name__ == "__main__":
-    data = load_data("products.json")
+    data = load_data("products.json") 
     processed_data = preprocess_data(data)
 
-    print(processed_data[:3])
+    vectorizer, tfidf_matrix = build_tfidf(processed_data)
 
-    vocabulary = {w for text in processed_data for w in text.split()}
+    vocabulary = vectorizer.get_feature_names_out()
 
-    print(fix_typos("cotten", vocabulary))
-    print(fix_typos("proffesional", vocabulary))
+    raw_query = "proffesnal coten"
+    print(f"user types: {raw_query}")
 
-    # synonyms dictionary for common product-related terms
-    SYNONYMS = {
-        "use": ["utilize", "apply", "employ"],
-        "quality": ["standard", "grade", "caliber"],
-        "classic": ["traditional", "timeless", "iconic"],
-        "travel": ["journey", "trip", "tour"],
-        "materials": ["fabrics", "components", "substances"],
-        "design": ["style", "pattern", "layout"],
-        "max": ["maximum", "ultimate", "highest"],
-        "pro": ["professional", "advanced", "expert"],
-        "elite": ["premium", "exclusive", "top-tier"],
-        "lite": ["lightweight", "basic", "slim"],
-        "sport": ["athletic", "fitness", "training"],
-        "plus": ["additional", "extra", "extended"],
-        "studio": ["workshop", "lab", "creative-space"],
-        "designed": ["crafted", "built", "constructed"],
-        "worldwide": ["global", "international", "universal"],
-        "essentials": ["basics", "necessities", "fundamentals"],
-        "performs": ["operates", "functions", "works"],
-        "ensure": ["guarantee", "secure", "confirm"],
-        "excellent": ["outstanding", "superb", "exceptional"],
-        "performance": ["efficiency", "output", "capabilities"],
-        "functionality": ["features", "capabilities", "utility"],
-        "home": ["house", "domestic", "residential"],
-        "ideal": ["perfect", "optimal", "suitable"],
-        "modern": ["contemporary", "current", "updated"],
-        "premium": ["luxury", "high-end", "top-quality"],
-        "collection": ["set", "series", "assortment"],
-        "setup": ["configuration", "installation", "arrangement"],
-        "users": ["customers", "clients", "consumers"],
-        "craftsmanship": ["artistry", "skill", "expertise"],
-        "friendly": ["easy", "accessible", "user-friendly"],
-    }
+    fixed_query = fix_typos(raw_query, vocabulary)
+    print(f"fixed typos: {fixed_query}")
+
+    final_query = expand_synonyms(fixed_query, SYNONYMS)
+    print(f"final query for search: {final_query}")
+
 
 
 
