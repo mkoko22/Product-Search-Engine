@@ -132,26 +132,50 @@ def search(query, vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary, top
         results.append((data[idx], float(scores[idx])))
     return results
 
-# run simple checks only when executing directly
+# interactive CLI loop
+def run_cli(vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary):
+    print("\n" + "="*60)
+    print("Product Search Engine Ready! Type 'exit' to quit.")
+    print("="*60 + "\n")
+    
+    while True:
+        query = input("Search: ").strip()
+        if not query:
+            continue
+        if query.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
+
+        results = search(query, vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary)
+
+        valid_results = [(p, s) for p, s in results if s > 0]
+
+        if not valid_results:
+            print("\nNo matching products found. Try different keywords!\n")
+            continue
+
+        print(f"\nTop {len(valid_results)} results:")
+        for i, (product, score) in enumerate(valid_results, 1):
+            name = product.get('name', 'Unknown')
+            price = product.get('price', 'N/A')
+            brand = product.get('brand', 'N/A')
+            print(f"{i}. {name} | Brand: {brand} | Price: {price} (Score: {score:.4f})")
+        print("\n")
+
+# main execution
 if __name__ == "__main__":
     print("Loading data and building search index. Please wait...")
     
+    if not os.path.exists("products.json"):
+        print("Error: 'products.json' not found in the current directory.")
+        exit(1)
+
     data = load_data("products.json") 
     processed_data = preprocess_data(data)
 
     vectorizer, tfidf_matrix = build_tfidf(processed_data)
     vocabulary = vectorizer.get_feature_names_out()
-
-    test_query = "proffessnal cotten"
-    print(f"\nSearching for: '{test_query}'")
-    
-    results = search(test_query, vectorizer, tfidf_matrix, data, SYNONYMS, vocabulary)
-
-    for i, (product, score) in enumerate(results, 1):
-        if score > 0:
-            name = product.get("name", "Unknown Product")
-            brand = product.get("brand", "Unknown Brand")
-            print(f"{i}. [Score: {score:.4f}] {name} (Brand: {brand})")
+    run_cli(vectorizer, tfidf_matrix, data, SYNONYMS, vocabulary)
 
 
 
