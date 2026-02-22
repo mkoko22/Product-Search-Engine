@@ -1,11 +1,13 @@
 import json
 import re
 import os
+import numpy as np
 from collections import Counter
 from difflib import get_close_matches
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-
+# synonym dictionary for query expansion
 SYNONYMS = {
     "use": ["utilize", "apply", "employ"],
     "quality": ["standard", "grade", "caliber"],
@@ -111,23 +113,45 @@ def expand_synonyms(query, synonyms_dict):
             expanded.extend(synonyms_dict[w])
     return " ".join(expanded)
 
+# search function
+def search(query, vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary, top_k=10):
+    query = query.lower()
+    query = re.sub(r"[^a-z0-9\s]", " ", query)
+    query = re.sub(r"\s+", " ", query).strip()
+
+    query = fix_typos(query, vocabulary)
+    query = expand_synonyms(query, synonyms_dict)
+
+    query_vec = vectorizer.transform([query])
+    scores = cosine_similarity(query_vec, tfidf_matrix).flatten()
+
+    top_indices = np.argsort(scores)[::-1][:top_k]
+
+    results = []
+    for idx in top_indices:
+        results.append((data[idx], float(scores[idx])))
+    return results
+
 # run simple checks only when executing directly
 if __name__ == "__main__":
+    print("Loading data and building search index. Please wait...")
+    
     data = load_data("products.json") 
     processed_data = preprocess_data(data)
 
     vectorizer, tfidf_matrix = build_tfidf(processed_data)
-
     vocabulary = vectorizer.get_feature_names_out()
 
-    raw_query = "proffesnal coten"
-    print(f"user types: {raw_query}")
+    test_query = "proffessnal cotten"
+    print(f"\nSearching for: '{test_query}'")
+    
+    results = search(test_query, vectorizer, tfidf_matrix, data, SYNONYMS, vocabulary)
 
-    fixed_query = fix_typos(raw_query, vocabulary)
-    print(f"fixed typos: {fixed_query}")
-
-    final_query = expand_synonyms(fixed_query, SYNONYMS)
-    print(f"final query for search: {final_query}")
+    for i, (product, score) in enumerate(results, 1):
+        if score > 0:
+            name = product.get("name", "Unknown Product")
+            brand = product.get("brand", "Unknown Brand")
+            print(f"{i}. [Score: {score:.4f}] {name} (Brand: {brand})")
 
 
 
