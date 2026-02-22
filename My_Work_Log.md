@@ -1,5 +1,6 @@
 ## Feb 20
 19:30–21:30:
+
 Did: read the assignment carefully and worked on understanding the requirements. Reviewed TF-IDF and feature weighting examples to see how to identify which words are most meaningful in a search context. Explored different interface options (CLI vs website) and considered how much impact the interface has versus the search logic.
 
 Confused about: how to clearly distinguish common versus informative words when ranking relevance, whether a CLI might be viewed as less impressive than a website, and how detailed the work log should be to reflect genuine progress.
@@ -8,6 +9,7 @@ Changed after learning: decided to maintain the work log in real time rather tha
 
 ## Feb 21
 00:30-02:30
+
 Did: started implementing data preprocessing. Wrote functions to load JSON, combine product fields into a single text string, lowercase everything, and remove punctuation/extra spaces. Tested preprocessing on sample products to confirm it worked.
 
 Confused about: how to handle typos in user queries efficiently and whether to build it from scratch or use existing libraries.
@@ -16,6 +18,7 @@ Changed after learning: discovered difflib.get_close_matches and rapidfuzz.proce
 
 ## Feb 22
 16:00 - 18:00
+
 Did: worked on ways to improve search recall by handling vocabulary mismatches. Wrote a script to count and extract the most frequent words across all products (save_top_words) to understand the dataset better. Based on those common terms, I manually created a SYNONYMS dictionary to map variations.
 
 Confused about: at first, my top words list was completely flooded with generic words like "the", "and", or "with", which wasn't helpful for finding actual product attributes. I was also unsure whether to use a massive external library like WordNet for synonyms or just hardcode them.
@@ -23,6 +26,7 @@ Confused about: at first, my top words list was completely flooded with generic 
 Changed after learning: I realized I needed to filter out common English words (like "the" or "and"), so I used ENGLISH_STOP_WORDS from sklearn to clean up my frequency counter. For synonyms, I originally thought about using a big dictionary library to find matching words. But I realized that would be too slow and complicated for a simple CLI app. Instead, I decided to just "hardcode" a small dictionary of synonyms myself using only the most common words I found in my product dataset.
 
 19:00-21:00
+
 Did: implemented the core search and ranking engine. I brought in TfidfVectorizer from sklearn to convert all product texts into a matrix, which automatically weights unique/informative words higher than generic ones. I also wrote an expand_synonyms function to catch related terms, and built the final search function that ties the whole pipeline together.
 
 Confused about: initially, I wasn't sure how to efficiently score and rank 10,000 products against a user's query without writing a massive, slow for loop to count matching words. I was also re-calculating the vocabulary for my typo-fixer manually, which felt redundant and slow.
@@ -30,6 +34,7 @@ Confused about: initially, I wasn't sure how to efficiently score and rank 10,00
 Changed after learning:  I learned about cosine_similarity, which compares the "angle" of the query vector against the entire product matrix instantly, providing a much more accurate relevance score than basic word counting. I also realized TfidfVectorizer automatically extracts all unique words during its fit_transform step. I deleted my manual vocabulary loop and replaced it with vectorizer.get_feature_names_out(), which made the script significantly faster and cleaner.
 
 21:00-23:00
+
 Did: added post-search filtering for Price and Brand and polished the CLI. I updated the search function to accept optional filter arguments and process them efficiently.
 
 Confused about: initially, I wasn't sure when to apply the filters. If I filtered the data list before running the search, the index numbers of the products would no longer match the index numbers in my tfidf_matrix, which would cause the program to return the wrong products or crash.
