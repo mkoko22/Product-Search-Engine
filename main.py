@@ -68,15 +68,22 @@ def preprocess_data(data):
     return processed_data
 
 # function to handle typos in the search query
-def fix_typos(query, vocabulary, n=1, cutoff=0.6):
+def fix_typos(query, vocabulary, synonyms_dict, n=1, cutoff=0.7):
     words = query.split()
     corrected = []
+    all_synonyms = set(synonyms_dict.keys())
+    for vals in synonyms_dict.values():
+        all_synonyms.update(vals)
+
     for w in words:
-        match = get_close_matches(w, vocabulary, n=n, cutoff=cutoff)
-        if match:
-            corrected.append(match[0])
-        else:
+        if w in all_synonyms:
             corrected.append(w)
+        else:
+            match = get_close_matches(w, vocabulary, n=n, cutoff=cutoff)
+            if match:
+                corrected.append(match[0])
+            else:
+                corrected.append(w)
     return " ".join(corrected)
 
 # save top words to a file
@@ -106,11 +113,20 @@ def build_tfidf(processed_data):
 # expand synonyms
 def expand_synonyms(query, synonyms_dict):
     words = query.split()
-    expanded = []
+    expanded = set()
     for w in words:
-        expanded.append(w)
+        expanded.add(w)
+        
         if w in synonyms_dict:
-            expanded.extend(synonyms_dict[w])
+            for syn in synonyms_dict[w]:
+                expanded.add(syn)
+                
+        for key, values in synonyms_dict.items():
+            if w in values:
+                expanded.add(key)
+                for syn in values:
+                    expanded.add(syn)
+
     return " ".join(expanded)
 
 # search function with filtering
@@ -118,7 +134,7 @@ def search(query, vectorizer, tfidf_matrix, data, synonyms_dict, vocabulary, max
     query = query.lower()
     query = re.sub(r"[^a-z0-9\s]", " ", query)
     query = re.sub(r"\s+", " ", query).strip()
-    query = fix_typos(query, vocabulary)
+    query = fix_typos(query, vocabulary, synonyms_dict)
     query = expand_synonyms(query, synonyms_dict)
     query_vec = vectorizer.transform([query])
 
