@@ -1,6 +1,6 @@
 # Product Search Engine (CLI)
 ## What I Built:
-I built a lightweight, terminal-based search engine designed to quickly and accurately search through a dataset of 10,000 products. Rather than building a web interface, I chose to build a Command Line Interface (CLI). This allowed me to focus on the actual backend logic: text preprocessing, handling user typos, synonym expansion, mathematical ranking (TF-IDF), and post-search filtering.
+I built a lightweight, terminal-based search engine designed to quickly and accurately search through a dataset of 10,000 products. To ensure highly relevant results and meet the core search requirements, the engine performs a full-text search across combined data fields for every item, including the product's **name, description, brand, and country**. Rather than building a web interface, I chose to build a Command Line Interface (CLI). This allowed me to focus on the actual backend logic: text preprocessing, handling user typos, synonym expansion, mathematical ranking (TF-IDF), and post-search filtering.
 
 ## How to Run It Step-by-Step:
 1. Prerequisites:
