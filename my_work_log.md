@@ -42,3 +42,19 @@ Did: added post-search filtering for Price and Brand and polished the CLI. I upd
 Confused about: initially, I wasn't sure when to apply the filters. If I filtered the data list before running the search, the index numbers of the products would no longer match the index numbers in my tfidf_matrix, which would cause the program to return the wrong products or crash.
 
 Changed after learning: I realized the best way to do this is to calculate the cosine similarity scores for everything, sort the array from highest to lowest score, and then apply the filters as I loop through the sorted list. I set it to break the loop as soon as it successfully finds 10 products that match the filter criteria.
+
+## Feb 23
+### 00:00-02:00 
+
+Did: conducted final end-to-end testing of the CLI. Tested edge-case queries to verify that both the typo-corrector and the custom bidirectional synonym dictionary were working together seamlessly.
+
+Confused about: during testing, I noticed a logic conflict. When I searched for the valid word "workshop" (which my synonym engine is supposed to map to "studio"), I got bizarre results for products containing the word "works" (like "Rustavi Works"). I couldn't figure out why the synonym engine was completely ignoring the word "workshop".
+
+Changed after learning: I realized my typo-corrector was running before the synonym expander and was being way too aggressive. Because my `difflib` cutoff was set to 0.6, the script assumed "workshop" was a misspelling of "works" and overwrote it before the synonym dictionary ever saw it. To fix this, I increased the distance cutoff threshold to 0.7 to make the spellchecker stricter. Also, I added a safety check to the pipeline: if a word is already in my synonym dictionary, the engine explicitly bypasses the typo-corrector.
+
+### 16:00-18:00 
+Did: finalized the project by writing the README.md and DOCUMENTATION.md files. I created step-by-step setup instructions, example queries to prove the synonym/typo engine works and an explanation of the system architecture (what I built vs. what I reused).
+
+Confused about: initially, I wasn't sure how to write about the weaknesses of my application.
+
+Changed after learning: I realized that being completely transparent about the system's limitations is actually a strength. Instead of hiding the fact that TF-IDF doesn't understand context, I documented it as "Lexical vs. Semantic Search" and explained that my next learning goal is to implement dense vector embeddings and API wrappers. Framing these as future optimizations made the documentation feel much more honest.
